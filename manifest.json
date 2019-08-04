@@ -15,7 +15,6 @@
     }
   ],
   "permissions": [
-    "tabs",
     "http://mixer.com/*",
     "https://mixer.com/*"
   ],
