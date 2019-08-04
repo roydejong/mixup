@@ -8,19 +8,28 @@ Concept version of an extension for mixer.com, that provides some unofficial enh
 ## Installation
 
 #### For Chrome and Chromium based browsers (Brave, Vivaldi, etc):
-https://chrome.google.com/webstore/detail/pkakpbfnigecmajbogmmihgokhdcldhf/preview?hl=nl
+https://chrome.google.com/webstore/detail/pkakpbfnigecmajbogmmihgokhdcldhf
 
-#### For Firefox (pending review):
+#### For Firefox (⚠ still pending review currently):
 https://addons.mozilla.org/en-US/firefox/addon/mixup/
 
 ## Current features
-* Prevent chat "smooth scroll" animation
+
+### Main features:
+* 🍿 Theater mode button
+* 👍 No more chat scroll animation
+* 🧹 Clean up the interface
+
+### Full list of current tweaks:
+* Add theater mode button to player
+* Prevent chat "smooth scroll" / jump animation
 * Badges before usernames in messages
-* Black player background, remove background image
+* Black video background, no image
 * Make top navigation bar less noisy
-* Hide "get embers" button in navigation
-* Hide upsell tooltip when hovering top-left username
-* Hide skill animations and overlays in chat
+* Hide "get embers" button in navigation (you can still buy via menus)
+* Hide upsell tooltip when hovering top-right username
+* Hide skill animations in chat
+* Hide top cheer leaderboard above chat
 * Hide language button in navigation
 * Hide homepage promos ("watch ninja!")
 
