@@ -61,6 +61,8 @@ function findClassNameWithSuffix(baseSelector, val) {
 
 const StyleRulesKeys = {
   __MixupUi: '__mixup-ui',
+  __MixupTheaterButton: '__mixup-theater-button',
+  __MixupTheaterMode: '__mixup-theater-mode',
   HideLanguageButton: 'hide-lang',
   HideGetEmbers: 'hide-get-embers',
   HideHomepageBanner: 'hide-homepage-banner',
@@ -86,9 +88,20 @@ const StyleRules = {
   /**
    * Meta rule for injecting extension UI CSS.
    */
-  [StyleRulesKeys.__MixupUi]: () => {
-    return MixupBrand.styleRules;
-  },
+  [StyleRulesKeys.__MixupUi]: () =>
+    MixupBrand.styleRules,
+
+  /**
+   * Meta rule for injecting extension theater mode button CSS.
+   */
+  [StyleRulesKeys.__MixupTheaterButton]: () =>
+    TheaterMode.buttonStyles,
+
+  /**
+   * Applies a custom "theater mode".
+   */
+  [StyleRulesKeys.__MixupTheaterMode]: () =>
+    TheaterMode.styles,
 
   /**
    * Hides the language button in the navigation.
@@ -238,7 +251,7 @@ class StyleInjector {
 
   static ruleOn(ruleKey) {
     if (!(ruleKey in StyleRules)) {
-      debug('Invalid style rule requested:', ruleKey);
+      debug('⚠ Invalid style rule requested:', ruleKey);
       return false;
     }
 
@@ -305,6 +318,138 @@ class ChatDeAnimator {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
+// Theater mode
+// ---------------------------------------------------------------------------------------------------------------------
+
+class TheaterMode {
+  static get toolbarSelector() {
+    return document.querySelector(`b-stage .toolbar .layout-row.right`);
+  }
+
+  static get buttonId() {
+    return 'mixup-injected-theater';
+  }
+
+  static get buttonSelector() {
+    return document.querySelector(`#${this.buttonId}`);
+  }
+
+  static get styles() {
+    return ` ` +
+      // remove nav/header stuff
+      `b-cookie-check, b-desktop-header, b-mobile-header { display: none !important; }`
+      // remove profile blocks
+      + `b-channel-profile .profile-blocks, b-channel-profile .profile-header { display: none !important; }`
+      // chat margins
+      + `b-channel-web-page .chat { top: 0 !important; bottom: 0 !important; width: 340px !important; }`
+      // video player container 100% height
+      + `b-channel-web-page, b-channel-web-page .channel-page { max-height: 100vh !important; height: 100vh !important; }`
+      // video player 100% height
+      + `b-channel-web-page .channel-page, b-channel-web-page .stage, b-stage { height: 100vh !important; max-height: 100vh !important; }`
+      // profile bar pin to bottom
+      + `b-channel-info-bar { position: fixed; top: 15px; right: 15px; bottom: auto; left: 15px; z-index: 1; }`
+      // info bar transparent bg
+      + `b-channel-info-bar .info-bar { border: none; background: none !important; box-shadow: none !important; }`
+      + `b-skills-button-host-component, b-skills-button-host-component button { border: none !important; }`
+      // channel page margins
+      + `b-channel-web-page .channel-page { width: calc(100vw - 340px) !important; overflow-y: hidden !important; }`
+      // margin correction
+      + `b-channel-web-page .channel-page { margin-right: 340px !important; }`
+      // black bg
+      + `html, body, b-channel-web-page { background-color: #000 !important; background-image: none !important; }`
+      // ensure skills open on bottom
+      + `b-skills-tray-host-component .skills-tray-container { bottom: 0 !important; }`
+      // remove open/closed chevron from skills button
+      + `b-skills-button-host-component button > span:last-child { display: none !important; }`
+      // opacity transition for profile bar
+      + `b-channel-info-bar { transition: opacity .1s ease; }`
+  }
+
+  static get buttonStyles() {
+    const buttonSelector = `#${this.buttonId}`;
+
+    return `${buttonSelector} { margin-right: 7px; margin-top: 4px; }`
+        + `${buttonSelector} button { padding: 0; margin: 0; background: transparent; border: none; font-family: "Industrywf",sans-serif; color: #fff; display: inline-block; position: relative; border: none; cursor: pointer; z-index: 1; }`
+        + `${buttonSelector} bui-icon { font-size: 24px; width: 1em; height: 1em; display: inline-block; overflow: hidden; }`;
+  }
+
+  static handleClick(e) {
+    e.preventDefault();
+
+    if (this._on) {
+      this.off();
+    } else {
+      this.on();
+    }
+
+    return false;
+  }
+
+  static on() {
+    if (!this._on) {
+      log('🍿 Theater mode on.');
+      StyleInjector.ruleOn(StyleRulesKeys.__MixupTheaterMode);
+      this._on = true;
+      this.tick();
+    }
+  }
+
+  static off() {
+    if (this._on) {
+      log('🍿 Theater mode off.');
+      StyleInjector.ruleOff(StyleRulesKeys.__MixupTheaterMode);
+      this._on = false;
+      this.tick();
+    }
+  }
+
+  static tick() {
+    const infoBarNode = document.querySelector('b-channel-info-bar');
+    const toolbarNode = document.querySelector('b-stage .toolbar');
+
+    if (!toolbarNode || !infoBarNode) {
+      // Not on a channel page, or the player hasn't fully loaded yet
+      return false;
+    }
+
+    const toolbarIsVisible = toolbarNode.className.indexOf('visible') >= 0;
+
+    if (this._on && !toolbarIsVisible) {
+      infoBarNode.style.opacity = '0.0';
+      infoBarNode.style.pointerEvents = 'none';
+    } else {
+      infoBarNode.style.opacity = '1.0';
+      infoBarNode.style.pointerEvents = 'normal';
+    }
+
+    if (this.buttonSelector) {
+      // Button already injected
+      return true;
+    }
+
+    // Inject button
+    let controlNode = document.createElement('div');
+    controlNode.id = this.buttonId;
+    controlNode.className = 'control';
+    controlNode.innerHTML = `<button buibtn buitooltopside="top" icon id="${this.buttonId}-button" title="Theater mode" aria-label="Theater mode" tabindex="0" aria-disabled="false">`
+      + `  <div class="bui-btn bui-btn-icon bui-btn-flat" data-variant="default">`
+      + `    <bui-icon icon="theater"><span aria-hidden="false" class="set-material icon-fullscreen">🍿</span></bui-icon>`
+      + `  </span>`
+      + `  </div>`
+      + `</button>`;
+    controlNode.onclick = TheaterMode.handleClick.bind(this);
+    this.toolbarSelector.appendChild(controlNode);
+
+    // Inject button CSS
+    StyleInjector.ruleOn(StyleRulesKeys.__MixupTheaterButton);
+
+    // Done
+    debug('Injected theater mode button.', controlNode);
+    return true;
+  }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
 // Mixup Brand
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -347,12 +492,16 @@ class MixupBrand {
 
 class MixerPoller {
   static go() {
-    setInterval(this.tick.bind(this), 2500);
-    setTimeout(this.tick.bind(this), 250);
+    setInterval(this.tick.bind(this), 500);
+    this.tick();
   }
 
   static tick() {
     ChatDeAnimator.tickBind();
+
+    if (!TheaterMode.tick()) {
+      TheaterMode.off();
+    }
   }
 }
 
