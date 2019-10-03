@@ -323,7 +323,7 @@ class ChatDeAnimator {
 
 class TheaterMode {
   static get toolbarSelector() {
-    return document.querySelector(`b-stage .toolbar .layout-row.right`);
+    return document.querySelector(`.spectre-player > div > div:last-child > div:last-child > div:last-child > div:last-child`);
   }
 
   static get buttonId() {
@@ -363,13 +363,17 @@ class TheaterMode {
       + `b-skills-button-host-component button > span:last-child { display: none !important; }`
       // opacity transition for profile bar
       + `b-channel-info-bar { transition: opacity .1s ease; }`
+      // Injected button (dynamic mixer class)
+      + `.injected-control-span { display: flex; -webkit-box-orient: vertical; -webkit-box-direction: normal; flex-direction: column; height: 100%; -webkit-box-pack: center; justify-content: center; position: relative; }`
+
   }
 
   static get buttonStyles() {
     const buttonSelector = `#${this.buttonId}`;
 
-    return `${buttonSelector} { margin-right: 7px; margin-top: 4px; }`
-        + `${buttonSelector} button { padding: 0; margin: 0; background: transparent; border: none; font-family: "Industrywf",sans-serif; color: #fff; display: inline-block; position: relative; border: none; cursor: pointer; z-index: 1; }`
+    return `${buttonSelector} { margin-right: 15px; margin-bottom: 2px; }`
+        + `${buttonSelector} button { background: none; border: none; color: #fff; cursor: pointer; font-size: 1em; margin: 8px 4px; padding: 0; text-align: center; height: 36px; width: 36px; padding: 6px; border-radius: 50%; -webkit-box-orient: vertical; -webkit-box-direction: normal; flex-direction: column; -webkit-box-pack: center; justify-content: center; -webkit-box-align: center; align-items: center; display: -webkit-box; display: flex; }`
+        + `${buttonSelector} button:hover { background-color: hsla(0,0%,100%,.12); }`
         + `${buttonSelector} bui-icon { font-size: 24px; width: 1em; height: 1em; display: inline-block; overflow: hidden; }`;
   }
 
@@ -405,7 +409,7 @@ class TheaterMode {
 
   static tick() {
     const infoBarNode = document.querySelector('b-channel-info-bar');
-    const toolbarNode = document.querySelector('b-stage .toolbar');
+    const toolbarNode = this.toolbarSelector;
 
     if (!toolbarNode || !infoBarNode) {
       // Not on a channel page, or the player hasn't fully loaded yet
@@ -428,9 +432,9 @@ class TheaterMode {
     }
 
     // Inject button
-    let controlNode = document.createElement('div');
+    let controlNode = document.createElement('span');
     controlNode.id = this.buttonId;
-    controlNode.className = 'control';
+    controlNode.className = 'injected-control-span';
     controlNode.innerHTML = `<button buibtn buitooltopside="top" icon id="${this.buttonId}-button" title="Theater mode" aria-label="Theater mode" tabindex="0" aria-disabled="false">`
       + `  <div class="bui-btn bui-btn-icon bui-btn-flat" data-variant="default">`
       + `    <bui-icon icon="theater"><span aria-hidden="false" class="set-material icon-fullscreen">🍿</span></bui-icon>`
@@ -444,7 +448,7 @@ class TheaterMode {
     StyleInjector.ruleOn(StyleRulesKeys.__MixupTheaterButton);
 
     // Done
-    debug('Injected theater mode button.', controlNode);
+    debug('🍿 Injected theater mode button.', controlNode);
     return true;
   }
 }
